@@ -33,6 +33,10 @@ class BadRequestError(MagSkladException):
 
 
 async def internal_error_handler(request: Request, exc: Exception) -> JSONResponse:
+    import traceback
+
+    traceback.print_exc()  # full traceback → visible in `docker compose logs app`
+
     from app.utils.telegram import notify_error  # avoid circular import at module level
 
     await notify_error(
