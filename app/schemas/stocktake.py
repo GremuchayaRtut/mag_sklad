@@ -1,6 +1,5 @@
 import uuid
 from datetime import datetime
-from decimal import Decimal
 from typing import Annotated
 
 from pydantic import BaseModel, Field
@@ -9,15 +8,15 @@ from app.models.enums import StocktakeStatus
 
 
 class UpdateStocktakeItemRequest(BaseModel):
-    actual_quantity: Annotated[Decimal, Field(ge=0)]
+    actual_quantity: Annotated[float, Field(ge=0)]
 
 
 class StocktakeItemResponse(BaseModel):
     id: uuid.UUID
     product_id: uuid.UUID
     product_name: str
-    expected_quantity: Decimal
-    actual_quantity: Decimal | None
+    expected_quantity: float
+    actual_quantity: float | None
     is_checked: bool
 
 

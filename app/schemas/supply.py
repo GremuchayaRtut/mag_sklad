@@ -1,6 +1,5 @@
 import uuid
 from datetime import date, datetime
-from decimal import Decimal
 from typing import Annotated
 
 from pydantic import BaseModel, Field
@@ -10,8 +9,8 @@ from app.models.enums import SupplyStatus
 
 class SupplyItemInput(BaseModel):
     product_id: uuid.UUID
-    quantity: Annotated[Decimal, Field(gt=0, description="Must be > 0")]
-    purchase_price: Annotated[Decimal, Field(ge=0)]
+    quantity: Annotated[float, Field(gt=0, description="Must be > 0")]
+    purchase_price: Annotated[float, Field(ge=0)]
 
 
 class SupplyCreate(BaseModel):
@@ -27,8 +26,8 @@ class SupplyItemResponse(BaseModel):
     id: uuid.UUID
     product_id: uuid.UUID
     product_name: str
-    quantity: Decimal
-    purchase_price: Decimal
+    quantity: float
+    purchase_price: float
 
 
 class SupplyResponse(BaseModel):

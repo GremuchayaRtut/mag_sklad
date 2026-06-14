@@ -1,6 +1,5 @@
 import uuid
 from datetime import datetime
-from decimal import Decimal
 from typing import Annotated
 
 from pydantic import BaseModel, Field
@@ -32,7 +31,7 @@ CategoryRead = CategoryResponse
 class StockByLocation(BaseModel):
     location_id: uuid.UUID
     location_name: str
-    quantity: Decimal
+    quantity: float
 
 
 # ── Product ───────────────────────────────────────────────────────────────────
@@ -44,8 +43,8 @@ class ProductCreate(BaseModel):
     sku: str | None = None
     unit: Unit = Unit.pcs
     category_id: uuid.UUID | None = None
-    sale_price: Annotated[Decimal, Field(ge=0)]
-    purchase_price: Annotated[Decimal, Field(ge=0)]
+    sale_price: Annotated[float, Field(ge=0)]
+    purchase_price: Annotated[float, Field(ge=0)]
     min_stock: Annotated[int, Field(ge=0)] = 0
 
 
@@ -56,8 +55,8 @@ class ProductUpdate(BaseModel):
     sku: str | None = None
     unit: Unit | None = None
     category_id: uuid.UUID | None = None
-    sale_price: Annotated[Decimal, Field(ge=0)] | None = None
-    purchase_price: Annotated[Decimal, Field(ge=0)] | None = None
+    sale_price: Annotated[float, Field(ge=0)] | None = None
+    purchase_price: Annotated[float, Field(ge=0)] | None = None
     min_stock: Annotated[int, Field(ge=0)] | None = None
     is_active: bool | None = None
 
@@ -71,8 +70,8 @@ class ProductResponse(BaseModel):
     sku: str | None
     unit: Unit
     photo_url: str | None
-    sale_price: Decimal
-    purchase_price: Decimal
+    sale_price: float
+    purchase_price: float
     min_stock: int
     is_active: bool
     category_id: uuid.UUID | None
