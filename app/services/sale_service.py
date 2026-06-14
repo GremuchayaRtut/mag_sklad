@@ -151,7 +151,7 @@ class SaleService:
                 )
             )
             available = _to_d(stock.quantity) if stock else Decimal("0")
-            qty = item_input.quantity
+            qty = _to_d(item_input.quantity)
 
             if available < qty:
                 raise BadRequestError(

@@ -198,7 +198,7 @@ class StocktakeService:
         business_id: uuid.UUID,
         stocktake_id: uuid.UUID,
         item_id: uuid.UUID,
-        actual_quantity: Decimal,
+        actual_quantity: float,
     ) -> StocktakeItemResponse:
         stocktake = await db.scalar(
             select(Stocktake).where(
@@ -220,7 +220,7 @@ class StocktakeService:
         if item is None:
             raise NotFoundError("Stocktake item not found")
 
-        item.actual_quantity = actual_quantity
+        item.actual_quantity = _to_d(actual_quantity)
         item.is_checked = True
         await db.commit()
         await db.refresh(item)
