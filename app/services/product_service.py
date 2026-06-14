@@ -12,7 +12,6 @@ from app.models.location import Location
 from app.models.product import Category, Product
 from app.models.stock import Stock
 from app.schemas.product import (
-    BarcodeSearchResponse,
     CategoryResponse,
     ExcelImportResponse,
     ProductCreate,
@@ -284,7 +283,7 @@ class ProductService:
 
     async def get_product_by_barcode(
         self, db: AsyncSession, business_id: uuid.UUID, barcode: str
-    ) -> BarcodeSearchResponse:
+    ) -> ProductWithStock:
         product = await db.scalar(
             select(Product).where(
                 Product.business_id == business_id,
@@ -304,11 +303,7 @@ class ProductService:
             )
 
         stocks_map = await _load_stocks(db, [product.id])
-        stocks = stocks_map.get(product.id, [])
-        return BarcodeSearchResponse(
-            product=_product_response(product, cat_name),
-            stocks=stocks,
-        )
+        return _with_stock(product, cat_name, stocks_map.get(product.id, []))
 
     # ── Products — mutations ──────────────────────────────────────────────────
 

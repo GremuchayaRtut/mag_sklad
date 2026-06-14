@@ -10,7 +10,6 @@ from app.core.deps import (
 )
 from app.models.user import User
 from app.schemas.product import (
-    BarcodeSearchResponse,
     CategoryCreate,
     CategoryResponse,
     ExcelImportResponse,
@@ -78,7 +77,7 @@ async def list_products(
     )
 
 
-@router.get("/barcode/{barcode}", response_model=BarcodeSearchResponse)
+@router.get("/barcode/{barcode}", response_model=ProductWithStock)
 async def get_by_barcode(
     barcode: str,
     current_user: User = Depends(get_current_user),
