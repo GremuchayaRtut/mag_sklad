@@ -26,6 +26,17 @@ def _r2_configured() -> bool:
     return bool(settings.CLOUDFLARE_R2_ACCESS_KEY and settings.CLOUDFLARE_R2_BUCKET)
 
 
+def _public_url(filename: str) -> str:
+    """Build a public CDN URL for the uploaded file.
+
+    Prefers CLOUDFLARE_R2_PUBLIC_URL (https://pub-XXXX.r2.dev) when set.
+    Falls back to the private API endpoint — usable only if the bucket has
+    public access enabled via a custom domain or the dev URL.
+    """
+    base = settings.CLOUDFLARE_R2_PUBLIC_URL or settings.CLOUDFLARE_R2_ENDPOINT
+    return f"{base.rstrip('/')}/{filename}"
+
+
 async def upload_product_photo(file: UploadFile, business_id: uuid.UUID) -> str:
     if file.content_type not in ALLOWED_TYPES:
         raise BadRequestError(
@@ -35,7 +46,6 @@ async def upload_product_photo(file: UploadFile, business_id: uuid.UUID) -> str:
     data = await file.read()
 
     img = Image.open(io.BytesIO(data))
-    # Convert RGBA / P modes so WebP encoder is happy
     if img.mode not in ("RGB", "RGBA"):
         img = img.convert("RGB")
     img.thumbnail((MAX_DIMENSION, MAX_DIMENSION), Image.LANCZOS)
@@ -47,7 +57,6 @@ async def upload_product_photo(file: UploadFile, business_id: uuid.UUID) -> str:
     filename = f"products/{business_id}/{uuid.uuid4()}.webp"
 
     if not _r2_configured():
-        # Local fallback for development
         local_path = f"/tmp/{filename.replace('/', '_')}"
         with open(local_path, "wb") as f:
             f.write(buf.read())
@@ -60,19 +69,24 @@ async def upload_product_photo(file: UploadFile, business_id: uuid.UUID) -> str:
         filename,
         ExtraArgs={"ContentType": "image/webp"},
     )
-    return f"{settings.CLOUDFLARE_R2_ENDPOINT}/{settings.CLOUDFLARE_R2_BUCKET}/{filename}"
+    return _public_url(filename)
 
 
 async def delete_product_photo(photo_url: str) -> None:
     if not _r2_configured():
         return
 
-    prefix = f"{settings.CLOUDFLARE_R2_ENDPOINT}/{settings.CLOUDFLARE_R2_BUCKET}/"
-    if not photo_url.startswith(prefix):
-        return
-
-    key = photo_url[len(prefix):]
-    try:
-        _get_r2_client().delete_object(Bucket=settings.CLOUDFLARE_R2_BUCKET, Key=key)
-    except Exception:
-        pass  # never fail a product update because of an old photo
+    # Extract object key from either public CDN URL or private endpoint URL
+    for base in filter(None, [settings.CLOUDFLARE_R2_PUBLIC_URL, settings.CLOUDFLARE_R2_ENDPOINT]):
+        prefix = base.rstrip("/") + "/"
+        if photo_url.startswith(prefix):
+            key = photo_url[len(prefix):]
+            # Strip bucket name prefix if present (private endpoint includes it)
+            bucket_prefix = settings.CLOUDFLARE_R2_BUCKET + "/"
+            if key.startswith(bucket_prefix):
+                key = key[len(bucket_prefix):]
+            try:
+                _get_r2_client().delete_object(Bucket=settings.CLOUDFLARE_R2_BUCKET, Key=key)
+            except Exception:
+                pass  # never fail a product update because of an old photo
+            return

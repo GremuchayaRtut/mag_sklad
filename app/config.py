@@ -14,6 +14,7 @@ class Settings(BaseSettings):
     CLOUDFLARE_R2_ACCESS_KEY: str = ""
     CLOUDFLARE_R2_SECRET_KEY: str = ""
     CLOUDFLARE_R2_ENDPOINT: str = ""
+    CLOUDFLARE_R2_PUBLIC_URL: str = ""  # https://pub-XXXX.r2.dev
 
     TELEGRAM_BOT_TOKEN: str = ""
     TELEGRAM_ADMIN_CHAT_ID: str = ""
