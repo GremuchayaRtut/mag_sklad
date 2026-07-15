@@ -24,5 +24,6 @@ app.include_router(api_router)
 
 
 @app.get("/health", tags=["system"])
+@app.get("/api/v1/health", tags=["system"])
 async def health_check():
     return {"status": "ok", "app": "МагСклад"}
